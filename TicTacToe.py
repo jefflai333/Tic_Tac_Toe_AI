@@ -1,3 +1,5 @@
+import time
+
 global ai_player, human_player
 ai_player = "X"
 human_player = "O"
@@ -78,7 +80,8 @@ def minimax(board, player, position=0):
 def ai_play(board):
     [evaluation, index] = minimax(board, ai_player)
     board[index-1] = ai_player
-    print("AI has played")
+    end_time = time.time()
+    print("AI has taken " + str(end_time-start_time) + " seconds to play")
     print_board(board)
     return board
 
