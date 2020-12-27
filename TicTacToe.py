@@ -78,6 +78,7 @@ def minimax(board, player, position=0):
 
 
 def ai_play(board):
+    start_time = time.time()
     [evaluation, index] = minimax(board, ai_player)
     board[index-1] = ai_player
     end_time = time.time()
