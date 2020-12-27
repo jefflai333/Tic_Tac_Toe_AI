@@ -77,9 +77,68 @@ def minimax(board, player, position=0):
         return total_moves[0]
 
 
-def ai_play(board):
+def minimax_alpha_beta(board, player, alpha, beta, position=0):
+    available_indexes = list(empty_indexes(board))
+    # return a value if the board has been completely filled
+    if is_winning(board, ai_player):
+        # return value of beta or alpha depending on if it is a min or max level
+        if player == ai_player:
+            return [1, position, -2, 1]
+        else:
+            return [1, position, 1, 2]
+    elif is_winning(board, human_player):
+        # return value of beta or alpha depending on if it is a min or max level
+        if player == ai_player:
+            return [-1, position, -2, -1]
+        else:
+            return [-1, position, -1, 2]
+    elif len(available_indexes) == 0:
+        # return value of beta or alpha depending on if it is a min or max level
+        if player == ai_player:
+            return [0, position, -2, 0]
+        else:
+            return [0, position, 0, 2]
+    total_moves = []
+    # generate new boards for every available index
+    for index in available_indexes:
+        new_board = board.copy()
+        new_board[index-1] = player
+        if player == ai_player:
+            result = minimax_alpha_beta(new_board, human_player, alpha, beta)
+            # check to see if alpha needs to be updated
+            alpha = max(alpha, result[2])
+            # check if branches can be pruned
+            if alpha >= beta:
+                total_moves.append([result[0], index, alpha, beta])
+                break
+        else:
+            result = minimax_alpha_beta(new_board, ai_player, alpha, beta)
+            # check to see if beta needs to be updated
+            beta = min(beta, result[3])
+            # check if branches can be pruned
+            if beta <= alpha:
+                total_moves.append([result[0], index, alpha, beta])
+                break
+        total_moves.append([result[0], index, alpha, beta])
+    # find minimum if it is for the human player, find maximum if it is for the ai player
+    if player == ai_player:
+        total_moves = sorted(total_moves, key=lambda x: x[0], reverse=True)
+        # swap alpha and beta values
+        total_moves[0][2], total_moves[0][3] = total_moves[0][3], total_moves[0][2]
+        return total_moves[0]
+    else:
+        total_moves = sorted(total_moves, key=lambda x: x[0])
+        # swap alpha and beta values
+        total_moves[0][2], total_moves[0][3] = total_moves[0][3], total_moves[0][2]
+        return total_moves[0]
+
+
+def ai_play(board, alpha_beta):
     start_time = time.time()
-    [evaluation, index] = minimax(board, ai_player)
+    if alpha_beta:
+        [evaluation, index, alpha, beta] = minimax_alpha_beta(board, ai_player, -2, 2)
+    else:
+        [evaluation, index] = minimax(board, ai_player)
     board[index-1] = ai_player
     end_time = time.time()
     print("AI has taken " + str(end_time-start_time) + " seconds to play")
@@ -87,9 +146,9 @@ def ai_play(board):
     return board
 
 
-def play_game(board):
+def play_game(board, alpha_beta):
     while len(list(empty_indexes(board))) > 0:
-        board = ai_play(board)
+        board = ai_play(board, alpha_beta)
         if check_for_win(board):
             break
         board = ask_user_play(board)
@@ -113,14 +172,15 @@ def check_for_win(board):
 
 
 def main():
+    alpha_beta = True
     empty_board = [1, 2, 3, 4, 5, 6, 7, 8, 9]
     ask_user_start()
     if human_player == "O":
         print_board(empty_board)
         board = ask_user_play(empty_board)
-        play_game(board)
+        play_game(board, alpha_beta)
     else:
-        play_game(empty_board)
+        play_game(empty_board, alpha_beta)
 
 
 if __name__ == "__main__":
